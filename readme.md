@@ -124,7 +124,7 @@ reciclaCerto/
 
 ## Project Status
 
-✅ **Completed and Optimized**
+✅ **Completed**
 
 > Check [GitHub Issues](https://github.com/vnpistori/reciclaCerto/issues) to suggest enhancements or report issues.
 
