@@ -137,4 +137,4 @@ This project is licensed under the terms of the **MIT License**. See the [LICENS
 Developed by **Vitória Pistori**.
 
 - GitHub: [@vnpistori](https://github.com/vnpistori)
-- Qualifications and certifications available in the [Documents Folder](https://github.com/vnpistori/vnpistori/tree/main/DOCUMENTOS).
+- Qualifications and certifications available in the [Documents Folder](https://github.com/vnpistori/vnpistori/tree/main/doc).
