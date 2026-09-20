@@ -50,7 +50,7 @@
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/vitoriapguimaraes/reciclaCerto.git
+   git clone https://github.com/vnpistori/reciclaCerto.git
    cd reciclaCerto
    ```
 
@@ -126,7 +126,7 @@ reciclaCerto/
 
 ✅ **Completed and Optimized**
 
-> Check [GitHub Issues](https://github.com/vitoriapguimaraes/reciclaCerto/issues) to suggest enhancements or report issues.
+> Check [GitHub Issues](https://github.com/vnpistori/reciclaCerto/issues) to suggest enhancements or report issues.
 
 ## License
 
@@ -136,5 +136,5 @@ This project is licensed under the terms of the **MIT License**. See the [LICENS
 
 Developed by **Vitória Pistori**.
 
-- GitHub: [@vitoriapguimaraes](https://github.com/vitoriapguimaraes)
-- Qualifications and certifications available in the [Documents Folder](https://github.com/vitoriapguimaraes/vitoriapguimaraes/tree/main/DOCUMENTOS).
+- GitHub: [@vnpistori](https://github.com/vnpistori)
+- Qualifications and certifications available in the [Documents Folder](https://github.com/vnpistori/vnpistori/tree/main/DOCUMENTOS).
