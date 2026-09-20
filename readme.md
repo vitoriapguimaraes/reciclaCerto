@@ -1,91 +1,140 @@
-# ReciclaCerto
+# ♻️ ReciclaCerto
 
-> Aplicação web que simplifica a reciclagem no dia a dia, conectando o usuário a informações essenciais sobre descarte correto de resíduos e pontos de coleta próximos, utilizando Inteligência Artificial e mapas interativos.
+> A web application that simplifies daily recycling by providing AI-powered waste disposal guidance via **Google Gemini 2.0 Flash** and interactive mapping of recycling drop-off points using **Leaflet.js** and **OpenStreetMap**.
 
-<a href="https://projetoreciclacerto.onrender.com/"><img src="https://img.shields.io/badge/-ReciclaCerto-228B22?style=for-the-badge" alt="ReciclaCerto"></a>
+![Python](https://img.shields.io/badge/Python-000000?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-000000?style=for-the-badge&logo=googlegemini&logoColor=white)
+![Leaflet](https://img.shields.io/badge/Leaflet-000000?style=for-the-badge&logo=leaflet&logoColor=white)
+![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-000000?style=for-the-badge&logo=openstreetmap&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-000000?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-000000?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-000000?style=for-the-badge&logo=javascript&logoColor=white)
 
-![Demonstração do sistema](https://github.com/vitoriapguimaraes/projetoReciclaCerto/blob/main/results/display.gif)
+## Demonstration
 
-## Funcionalidades Principais
+![System Demonstration](results/display.gif)
 
-- Consulta de itens: Descubra se um material é reciclável e como descartá-lo corretamente, com auxílio de IA (Google Gemini API).
-- Busca de pontos de coleta: Encontre locais próximos que aceitam o material informado, com visualização em mapa (OpenStreetMap + Leaflet.js).
-- Formulário de cadastro de associações (esqueleto): Indica futuras funcionalidades para cooperativas e associações de reciclagem.
+## Key Features
 
-## Tecnologias Utilizadas
+- 🔍 **AI-Powered Item Verification**: Search any item (e.g., _PET bottle, battery, styrofoam, toothbrush_) to instantly receive recyclability status and tailored preparation instructions powered by **Google Gemini 2.0 Flash**.
+- 📍 **Interactive Drop-off Points Map**: Locate nearby recycling centers and eco-points in São Paulo directly on an embedded **Leaflet.js** map with custom markers, accepted material details, and distance calculation.
+- 🗺️ **Geolocation & Address Lookup**: Find drop-off centers near you using browser GPS geolocation or by entering any neighborhood/address via the OpenStreetMap Nominatim geocoding API.
+- 🏢 **Cooperative Registration (Prototype)**: Interactive registration form designed for recycling cooperatives and drop-off points to expand the partner network.
 
-- Python
-- Flask
-- Google Gemini API
-- python-dotenv
-- HTML5, CSS3, JavaScript
-- Leaflet.js
-- OpenStreetMap (OSM)
-- Nominatim
+## Tech Stack
 
-## Como Executar
+### **Backend & AI**
 
-1. Clone o repositório:
-2. Crie e ative um ambiente virtual:
+- **Python 3.x**: Primary programming language.
+- **Flask**: Lightweight WSGI web application framework and REST API server.
+- **Google Generative AI SDK (`google-generativeai`)**: Integration with **Gemini 2.0 Flash** configured for structured JSON output (`application/json`).
+- **python-dotenv**: Secure environment variable management.
+
+### **Frontend & Mapping**
+
+- **HTML5 & CSS3**: Responsive UI styled with custom CSS variables, eco-themed color palette, and Google Fonts (_Outfit_ and _Inter_).
+- **JavaScript (ES6+)**: Asynchronous API requests (`fetch`), DOM manipulation, and dynamic Leaflet integration.
+- **Leaflet.js**: Open-source JavaScript library for interactive maps.
+- **OpenStreetMap & Nominatim**: Open map tile provider and location geocoding service.
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.8 or higher installed.
+- A **Google Gemini API Key** ([Obtain an API Key from Google AI Studio](https://aistudio.google.com/)).
+
+### Installation & Execution
+
+1. **Clone the repository**:
 
    ```bash
-   python -m venv venv
-   # No Windows:
-   .\venv\Scripts\activate
-   # No Linux/macOS:
-   source venv/bin/activate
+   git clone https://github.com/vitoriapguimaraes/reciclaCerto.git
+   cd reciclaCerto
    ```
 
-3. Instale as dependências:
+2. **Create and activate a virtual environment**:
+   - **Windows**:
+
+     ```bash
+     python -m venv venv
+     .\venv\Scripts\activate
+     ```
+
+   - **Linux / macOS**:
+
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+
+3. **Install dependencies**:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-4. Configure o arquivo `.env` na raiz do projeto com sua chave Gemini:
+4. **Configure environment variables**:
+   Create a `.env` file in the project root directory with your Gemini API key:
 
    ```env
-   GEMINI_API_KEY="SUA_CHAVE_API_DO_GEMINI_AQUI"
+   GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
    ```
 
-5. Execute o aplicativo Flask:
+5. **Run the application**:
 
    ```bash
-   python app.py
+   python scripts/app.py
    ```
 
-6. Acesse no navegador: [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
+6. **Access in browser**:
+   Open [http://127.0.0.1:5000/](http://127.0.0.1:5000/) in your web browser.
 
-## Como Usar
+## How to Use
 
-- Digite o nome de um item (ex: "garrafa PET", "isopor") para saber se é reciclável e como descartar.
-- Para itens recicláveis, informe sua localização para visualizar pontos de coleta próximos no mapa.
-- Utilize o formulário de cadastro para simular o registro de uma associação (funcionalidade em desenvolvimento).
+1. In the **Check Item** section, type the name of an item (e.g., `"fluorescent bulb"`, `"milk carton"`, `"battery"`) and click **Check** (or press _Enter_).
+2. Review the recyclability badge and specific preparation instructions.
+3. In the **Interactive Collection Points** section, click **Use My Location** or type a São Paulo neighborhood/address and click **Search by Address**.
+4. Explore the interactive map, click markers to inspect center details, and view driving directions on OpenStreetMap.
 
-## Estrutura de Diretórios
+## Directory Structure
 
-```
-projetoReciclaCerto/
-├── .env                            # Variáveis de ambiente (API Keys)
-├── app.py                          # Backend Flask
-├── static/
-│   ├── style.css                   # Estilização CSS
-│   └── script.js                   # Lógica JavaScript do frontend
-├── templates/
-│   └── index.html                  # Página web principal
+```bash
+reciclaCerto/
+├── .env                            # Environment variables (API Keys)
+├── .gitignore                      # Git ignore rules
+├── LICENSE                         # License file
+├── Procfile                        # Deployment configuration (Heroku / Render)
+├── requirements.txt                # Python project dependencies
+├── readme.md                       # Main documentation file
 ├── data/
-│   └── pontos_reciclagem_sp.json   # Base de dados inicial (mock) de pontos de coleta para SP
-├── requirements.txt                # Dependências do projeto
-├── results/                        # Prints e gifs do sistema
-└── README.md                       # Documentação do projeto
+│   └── pontos_reciclagem_sp.json   # Mock database of eco-points and recycling cooperatives in SP
+├── results/
+│   └── display.gif                 # System demonstration GIF
+├── scripts/
+│   └── app.py                      # Flask backend and Gemini API integration
+├── static/
+│   ├── background.png              # Background image
+│   ├── script.js                   # Frontend scripts and Leaflet.js map logic
+│   └── style.css                   # Responsive CSS styles and design system
+└── templates/
+    └── index.html                  # Main web application template
 ```
 
-## Status
+## Project Status
 
-✅ Concluído
+✅ **Completed and Optimized**
 
-> Veja as [issues abertas](https://github.com/vitoriapguimaraes/projetoReciclaCerto/issues) para sugestões de melhorias e próximos passos.
+> Check [GitHub Issues](https://github.com/vitoriapguimaraes/reciclaCerto/issues) to suggest enhancements or report issues.
 
-## Mais Sobre Mim
+## License
 
-Acesse os arquivos disponíveis na [Pasta Documentos](https://github.com/vitoriapguimaraes/vitoriapguimaraes/tree/main/DOCUMENTOS) para mais informações sobre minhas qualificações e certificações.
+This project is licensed under the terms of the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+## Author
+
+Developed by **Vitória Pistori**.
+
+- GitHub: [@vitoriapguimaraes](https://github.com/vitoriapguimaraes)
+- Qualifications and certifications available in the [Documents Folder](https://github.com/vitoriapguimaraes/vitoriapguimaraes/tree/main/DOCUMENTOS).

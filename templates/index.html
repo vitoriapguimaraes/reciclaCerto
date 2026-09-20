@@ -3,112 +3,156 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ReciclaCerto: Seu Guia de Reciclagem</title>
-    <link rel="stylesheet" href="../static/style.css" />
+    <title>ReciclaCerto - Seu Guia Inteligente de Reciclagem</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Estilos do ReciclaCerto -->
+    <link rel="stylesheet" href="/static/style.css" />
     <link rel="icon" type="image/svg+xml" href="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/267b.svg" />
   </head>
   <body>
-    <div class="container">
-      <div class="header-container">
-        <h1>ReciclaCerto</h1>
-        <p>Seu guia rápido para uma reciclagem consciente</p>
-      </div>
-
-      <div class="main-sections">
-        <section class="item-checker">
-          <h2>Verificar Item</h2>
-          <p>Informe sobre a reciclagem de um item:</p>
-          <input
-            type="text"
-            id="itemInput"
-            placeholder="Ex: Garrafa PET, isopor, escova de dente..."
-          />
-          <button onclick="verificarItem()">Verificar</button>
-          <div id="geminiResult" class="box" style="display:none;"></div>
-        </section>
-
-        <section class="location-finder">
-          <h2>Encontrar Pontos de Coleta</h2>
-          <p>Com base na sua localização, encontre onde descartar:</p>
-          <input
-            type="text"
-            id="locationInput"
-            placeholder="Sua cidade/endereço (Ex: São Paulo, SP)"
-            onkeyup="if(event.key === 'Enter') buscarLocalizacao(true)"
-          />
-          <div class="btn-adress">
-            <button onclick="buscarLocalizacao()">
-              Usar Localização Atual
-            </button>
-            <button onclick="buscarLocalizacao(true)">
-              Buscar por Endereço
-            </button>
+    <div class="app-layout">
+      <!-- Header / Banner Header -->
+      <header class="header-container">
+        <div class="header-brand">
+          <span class="brand-icon">♻️</span>
+          <div>
+            <h1>ReciclaCerto</h1>
+            <p>Seu guia rápido para reciclagem consciente e ecopontos em SP</p>
           </div>
-          <div id="locationResult" class="result-box" style="display:none;"></div>
-        </section>
-      </div>
+        </div>
+      </header>
 
-      <footer>
-        <p>
-          Você é uma cooperativa e gostaria de divulgar suas informações sobre
-          coleta e endereço?
-        </p>
-        <button id="openCoopModalBtn" onclick="openCoopModal()">
-          Cadastre-se
-        </button>
-      </footer>
-
-      <div id="coopModal">
-        <div class="modal-content">
-          <button
-            class="close-btn"
-            onclick="closeCoopModal()"
-            aria-label="Fechar"
-            title="Fechar"
-          >
-            &times;
-          </button>
-          <section class="association-signup">
-            <h2>Sou uma Associação ou Cooperativa de Reciclagem</h2>
-            <p>Gostaria de cadastrar seu ponto de coleta?</p>
-            <form id="associationForm">
-              <label for="assocNome">Nome da Associação:</label>
-              <input type="text" id="assocNome" name="nome" required />
-
-              <label for="assocEndereco">Endereço:</label>
-              <input type="text" id="assocEndereco" name="endereco" required />
-
-              <label for="assocItens"
-                >Itens que aceita (separados por vírgula):</label
-              >
+      <!-- Main Content Container -->
+      <main class="main-container">
+        <div class="main-sections">
+          <!-- Seção 1: Verificar Item -->
+          <section class="card item-checker" aria-labelledby="section-check-title">
+            <div class="card-header">
+              <span class="card-icon">🔍</span>
+              <h2 id="section-check-title">Verificar Item</h2>
+            </div>
+            <p class="card-description">Descubra se um material é reciclável e receba instruções exatas com a IA do Gemini:</p>
+            
+            <div class="input-group">
               <input
                 type="text"
-                id="assocItens"
-                name="itens_aceitos"
-                placeholder="Ex: Plástico, Papel, Metal"
+                id="itemInput"
+                placeholder="Ex: Garrafa PET, isopor, escova de dente, pilha..."
+                onkeyup="if(event.key === 'Enter') verificarItem()"
               />
-
-              <label for="assocContato">Contato (Email/Telefone):</label>
-              <input type="text" id="assocContato" name="contato" />
-
-              <button type="submit">
-                Cadastrar<br />
-                <span style="font-size: 0.9em; font-weight: normal"
-                  >(Funcionalidade em desenvolvimento)</span
-                >
+              <button id="btnVerificar" onclick="verificarItem()">
+                <span>Verificar</span>
               </button>
-              <p class="small-text">
-                <i>
-                  (Este formulário não envia dados para o servidor ainda. É um
-                  protótipo.)
-                </i>
-              </p>
-            </form>
+            </div>
+            
+            <div id="geminiResult" class="result-container" style="display:none;"></div>
+          </section>
+
+          <!-- Seção 2: Encontrar Pontos de Coleta & Mapa -->
+          <section class="card location-finder" aria-labelledby="section-location-title">
+            <div class="card-header">
+              <span class="card-icon">📍</span>
+              <h2 id="section-location-title">Pontos de Coleta Interativos</h2>
+            </div>
+            <p class="card-description">Localize ecopontos e cooperativas que aceitam o material pesquisado:</p>
+            
+            <div class="location-controls">
+              <input
+                type="text"
+                id="locationInput"
+                placeholder="Digite seu bairro ou endereço (Ex: Vila Mariana, SP)"
+                onkeyup="if(event.key === 'Enter') buscarLocalizacao(true)"
+              />
+              <div class="btn-adress">
+                <button class="btn-secondary" onclick="buscarLocalizacao(false)">
+                  📍 Usar Minha Localização
+                </button>
+                <button class="btn-primary" onclick="buscarLocalizacao(true)">
+                  🔎 Buscar por Endereço
+                </button>
+              </div>
+            </div>
+
+            <!-- Mapa Interativo Leaflet -->
+            <div id="map-wrapper">
+              <div id="map" style="height: 380px; width: 100%; border-radius: 12px;"></div>
+            </div>
+
+            <!-- Lista de Resultados de Pontos de Coleta -->
+            <div id="locationResult" class="result-box" style="display:none;"></div>
           </section>
         </div>
-      </div>
+      </main>
 
-    <script src="../static/script.js"></script>
+      <!-- Footer Rodapé -->
+      <footer>
+        <div class="footer-content">
+          <p>Você representa uma cooperativa ou ecoponto de reciclagem?</p>
+          <button id="openCoopModalBtn" onclick="openCoopModal()">
+            Cadastrar Ponto
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Modal de Cadastro de Cooperativas -->
+    <div id="coopModal" class="modal-overlay" onclick="handleModalOverlayClick(event)">
+      <div class="modal-content">
+        <button
+          class="close-btn"
+          onclick="closeCoopModal()"
+          aria-label="Fechar modal"
+          title="Fechar"
+        >
+          &times;
+        </button>
+        <section class="association-signup">
+          <div class="modal-header">
+            <h2>Cadastrar Associação / Cooperativa</h2>
+            <p>Faça parte da nossa rede de pontos sustentáveis de coleta.</p>
+          </div>
+          <form id="associationForm">
+            <label for="assocNome">Nome da Associação ou Ecoponto:</label>
+            <input type="text" id="assocNome" name="nome" placeholder="Ex: Cooperativa ReciclaSP" required />
+
+            <label for="assocEndereco">Endereço Completo:</label>
+            <input type="text" id="assocEndereco" name="endereco" placeholder="Rua, Número, Bairro - Cidade, Estado" required />
+
+            <label for="assocItens">Materiais Aceitos (separados por vírgula):</label>
+            <input
+              type="text"
+              id="assocItens"
+              name="itens_aceitos"
+              placeholder="Ex: Plástico, Papel, Metal, Vidro, Eletrônicos"
+              required
+            />
+
+            <label for="assocContato">Contato (E-mail ou Telefone):</label>
+            <input type="text" id="assocContato" name="contato" placeholder="contato@cooperativa.org" required />
+
+            <button type="submit" class="btn-submit">
+              Enviar Cadastro
+            </button>
+            <p class="small-text">
+              <i>(Modo de demonstração: Os dados são validados e simulados localmente).</i>
+            </p>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <!-- Leaflet.js JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Script Principal -->
+    <script src="/static/script.js"></script>
     <script>
       function openCoopModal() {
         document.getElementById("coopModal").classList.add("active");
@@ -116,6 +160,11 @@
       function closeCoopModal() {
         document.getElementById("coopModal").classList.remove("active");
       }
+      function handleModalOverlayClick(event) {
+        if (event.target.id === "coopModal") {
+          closeCoopModal();
+        }
+      }
     </script>
   </body>
-</html>
+</html>

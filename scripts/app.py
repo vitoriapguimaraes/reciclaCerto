@@ -8,26 +8,44 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__, static_folder='static')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
+
+app = Flask(
+    __name__,
+    static_folder=os.path.join(PROJECT_ROOT, 'static'),
+    template_folder=os.path.join(PROJECT_ROOT, 'templates')
+)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY não encontrada nas variáveis de ambiente. Certifique-se de que o arquivo .env está configurado corretamente.")
-
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('models/gemini-2.0-flash')
+model = None
+if GEMINI_API_KEY:
+    try:
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel(
+            'models/gemini-2.0-flash',
+            generation_config={"response_mime_type": "application/json"}
+        )
+        print("Google Gemini API configurada com sucesso.")
+    except Exception as e:
+        print(f"Erro ao inicializar API Gemini: {e}")
+        model = None
+else:
+    print("Aviso: GEMINI_API_KEY não encontrada nas variáveis de ambiente. Defina no arquivo .env para habilitar consultas via IA.")
 
 PONTOS_RECICLAGEM = []
+data_file_path = os.path.join(PROJECT_ROOT, 'data', 'pontos_reciclagem_sp.json')
+
 try:
-    with open('data/pontos_reciclagem_sp.json', 'r', encoding='utf-8') as f:
+    with open(data_file_path, 'r', encoding='utf-8') as f:
         PONTOS_RECICLAGEM = json.load(f)
-    print(f"Sucesso ao carregar {len(PONTOS_RECICLAGEM)} pontos de reciclagem.")
+    print(f"Sucesso ao carregar {len(PONTOS_RECICLAGEM)} pontos de reciclagem de '{data_file_path}'.")
 except FileNotFoundError:
-    print("Aviso: arquivo 'pontos_reciclagem_sp.json' não encontrado. A busca por locais de reciclagem não funcionará.")
+    print(f"Aviso: arquivo '{data_file_path}' não encontrado. A busca por locais de reciclagem funcionará com lista vazia.")
     PONTOS_RECICLAGEM = []
 except json.JSONDecodeError:
-    print("Erro: 'pontos_reciclagem_sp.json' contém JSON inválido. Verifique a sintaxe do arquivo JSON.")
+    print(f"Erro: '{data_file_path}' contém JSON inválido. Verifique a sintaxe do arquivo JSON.")
     PONTOS_RECICLAGEM = []
 
 @app.route('/')
@@ -58,11 +76,16 @@ def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 
 @app.route('/ask_gemini', methods=['POST'])
 def ask_gemini() -> json:
-    data = request.json
+    data = request.json or {}
     item = data.get('item')
 
     if not item:
         return jsonify({"error": "Por favor, forneça um item para verificar."}), 400
+
+    if not model:
+        return jsonify({
+            "error": "A chave GEMINI_API_KEY não está configurada no servidor. Por favor, adicione sua GEMINI_API_KEY no arquivo .env para utilizar a verificação inteligente."
+        }), 503
 
     prompt = f"""
     Você é um assistente de reciclagem no Brasil. Sua tarefa é analisar o item fornecido e responder de forma concisa:
@@ -71,50 +94,44 @@ def ask_gemini() -> json:
     3. Uma breve instrução de como prepará-lo para reciclagem (ex: lavar e secar, remover rótulos, descartar em ecoponto, etc.). Seja específico.
     4. Se não for reciclável pelo descarte comum, explique por que e sugira o que fazer (lixo comum, programas específicos).
     5. Se for um material muito específico ou que requer descarte especial (ex: medicamentos, lixo hospitalar, pilhas, óleo de cozinha, eletrônicos), adicione a instrução de "Procurar pontos de coleta específicos ou ecopontos".
-    Responda EXCLUSIVAMENTE no formato JSON, sem nenhum texto adicional antes ou depois. Se não souber, diga "Não sei" e "reciclavel": "desconhecido".
-    Exemplos de saída JSON:
-    - Item: Garrafa PET
-      Resposta: {{"reciclavel": true, "material": "plástico", "instrucao": "Lave e seque bem, amasse para ocupar menos espaço. Descarte em pontos de coleta de plástico ou lixeiras para recicláveis."}}
-    - Item: Isopor
-      Resposta: {{"reciclavel": true, "material": "isopor", "instrucao": "Nem todos os locais aceitam isopor. Se possível, quebre em pedaços menores. Procure pontos de coleta específicos para isopor na sua região, pois não é comum na coleta seletiva porta a porta."}}
-    - Item: Bucha de banho (sintética)
-      Resposta: {{"reciclavel": false, "material": "higiene pessoal", "instrucao": "Não, bucha de banho sintética não é reciclável no descarte comum. Descarte no lixo comum ou em programas de descarte de difícil reciclagem se houver."}}
-    - Item: Óleo de cozinha usado
-      Resposta: {{"reciclavel": true, "material": "óleo", "instrucao": "Não descarte no ralo! Guarde em garrafas PET limpas e secas. Procure ecopontos ou programas de coleta de óleo específicos na sua cidade."}}
-    - Item: Escova de dente
-      Resposta: {{"reciclavel": false, "material": "higiene pessoal", "instrucao": "A maioria das escovas de dente não é reciclável no lixo comum devido à mistura de materiais. Algumas marcas têm programas de reciclagem específicos. Verifique com o fabricante."}}
-    - Item: Pneu
-      Resposta: {{"reciclavel": true, "material": "borracha", "instrucao": "Pneus são recicláveis em pontos de coleta específicos ou borracharias que participam de programas de descarte. Nunca descarte no lixo comum. Podem ser usados para asfalto, quadras e outros produtos."}}
-    - Item: Bateria de celular
-      Resposta: {{"reciclavel": true, "material": "eletrônico", "instrucao": "Baterias de celular contêm metais pesados e não devem ser descartadas no lixo comum. Leve a pontos de coleta específicos para eletrônicos, lojas de eletrônicos ou ecopontos."}}
-    - Item: Papel de pão engordurado
-      Resposta: {{"reciclavel": false, "material": "papel", "instrucao": "Papéis com gordura ou restos de alimentos não são recicláveis, pois contaminam o processo. Descarte no lixo comum."}}
-    Agora, para o item: {item}
-    Resposta:
+
+    Retorne estritamente um JSON com a estrutura:
+    {{
+      "reciclavel": true/false,
+      "material": "categoria do material",
+      "instrucao": "instruções de descarte e reciclagem"
+    }}
+
+    Para o item: {item}
     """
 
     try:
         response = model.generate_content(prompt)
         gemini_response_text = ""
-        if response.candidates and hasattr(response.candidates[0], 'content') and \
-           hasattr(response.candidates[0].content, 'parts') and response.candidates[0].content.parts:
+        
+        if hasattr(response, 'text') and response.text:
+            gemini_response_text = response.text
+        elif response.candidates and hasattr(response.candidates[0], 'content') and \
+             hasattr(response.candidates[0].content, 'parts') and response.candidates[0].content.parts:
             gemini_response_text = response.candidates[0].content.parts[0].text
-        json_start = gemini_response_text.find('{')
-        json_end = gemini_response_text.rfind('}')
-        if json_start != -1 and json_end != -1 and json_end > json_start:
-            json_string = gemini_response_text[json_start : json_end + 1]
-            try:
-                gemini_json = json.loads(json_string)
-            except json.JSONDecodeError:
-                print(f"Erro ao parsear JSON do Gemini. String JSON: {json_string}")
-                return jsonify({
-                    "error": "Formato de resposta inesperado do Gemini. Tente novamente mais tarde.",
-                    "raw_gemini_response": gemini_response_text
-                }), 500
-        else:
+
+        gemini_json = None
+        try:
+            gemini_json = json.loads(gemini_response_text)
+        except json.JSONDecodeError:
+            json_start = gemini_response_text.find('{')
+            json_end = gemini_response_text.rfind('}')
+            if json_start != -1 and json_end != -1 and json_end > json_start:
+                json_string = gemini_response_text[json_start : json_end + 1]
+                try:
+                    gemini_json = json.loads(json_string)
+                except json.JSONDecodeError:
+                    pass
+
+        if not gemini_json:
             print(f"Resposta do Gemini não contém JSON válido: {gemini_response_text}")
             return jsonify({
-                "error": "Resposta do Gemini não contém formato JSON esperado.",
+                "error": "Resposta do Gemini não contém o formato JSON esperado.",
                 "raw_gemini_response": gemini_response_text
             }), 500
 
@@ -137,23 +154,23 @@ def ask_gemini() -> json:
         }
 
         if gemini_json.get("reciclavel") is True and locais_encontrados:
-            resultado["mensagem1"] = f"Há cooperativas que recolhem {item.lower()}, confira a mais perto de você."
-            resultado["mensagem2"] = "Esse material é reciclável."
+            resultado["mensagem1"] = f"Há cooperativas/ecopontos que recolhem {item.lower()}, confira no mapa a opção mais próxima de você."
+            resultado["mensagem2"] = "Esse material é reciclável!"
             resultado["mensagem3"] = f"Instruções para reciclar: {gemini_json.get('instrucao', 'N/A')}"
             resultado["status"] = "tem_local"
         elif gemini_json.get("reciclavel") is True and not locais_encontrados:
-            resultado["mensagem1"] = f"Esse material é reciclável, mas não temos informações de locais que reciclam {item.lower()} na nossa base de dados."
-            resultado["mensagem2"] = "Dicas do Gemini para você:"
+            resultado["mensagem1"] = f"Esse material é reciclável, mas não temos cooperativas específicas para {item.lower()} cadastradas em nossa base local."
+            resultado["mensagem2"] = "Dicas de reciclagem:"
             resultado["mensagem3"] = gemini_json.get('instrucao', 'N/A')
             resultado["status"] = "reciclavel_sem_local"
         elif gemini_json.get("reciclavel") is False:
-            resultado["mensagem1"] = f"{item.capitalize()} NÃO é reciclável. É considerado um resíduo comum."
-            resultado["mensagem2"] = "Orientação do Gemini para você:"
+            resultado["mensagem1"] = f"{item.capitalize()} NÃO é reciclável no descarte comum."
+            resultado["mensagem2"] = "Orientação de descarte:"
             resultado["mensagem3"] = gemini_json.get('instrucao', 'N/A')
             resultado["status"] = "nao_reciclavel"
         else:
-            resultado["mensagem1"] = f"Não foi possível determinar para {item.lower()}. Tente novamente com outra descrição."
-            resultado["mensagem2"] = "Verifique a informação ou tente novamente."
+            resultado["mensagem1"] = f"Não foi possível determinar o status de reciclagem para '{item}'. Tente descrever o item de outra forma."
+            resultado["mensagem2"] = "Verifique a informação ou tente outro item."
             resultado["status"] = "desconhecido"
 
         return jsonify(resultado)
@@ -161,12 +178,12 @@ def ask_gemini() -> json:
     except Exception as e:
         print(f"Erro inesperado ao processar solicitação '/ask_gemini': {e}", exc_info=True)
         return jsonify({
-            "error": f"Ocorreu um erro interno ao verificar o item. Por favor, tente novamente mais tarde. Detalhes: {str(e)}"
+            "error": f"Ocorreu um erro ao verificar o item com o Gemini. Detalhes: {str(e)}"
         }), 500
 
 @app.route('/find_recycling_points', methods=['POST'])
 def find_recycling_points() -> json:
-    data = request.json
+    data = request.json or {}
     material_from_frontend = data.get('material')
     user_latitude = data.get('latitude')
     user_longitude = data.get('longitude')
@@ -194,4 +211,4 @@ def find_recycling_points() -> json:
     return jsonify({"pontos": pontos_filtrados_e_ordenados})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)
